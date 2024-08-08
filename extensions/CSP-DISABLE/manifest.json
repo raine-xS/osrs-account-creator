@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Disable Content Security Policy",
+  "version": "1.0.0",
+  "description": "Disables CSP headers for all web pages.",
+  "permissions": [
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "48": "icon/cola_48.png",
+    "128": "icon/cola_128.png"
+  }
+}

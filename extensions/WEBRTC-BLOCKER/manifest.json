@@ -1,0 +1,24 @@
+{
+    "manifest_version": 2,
+    "name": "WEBRTC BLOCKER",
+    "version": "1.0",
+    "description": "BLOCKS WEBRTC",
+    "icons": {
+        "128": "/img/128.png"
+    },
+    "browser_action": {
+        "default_icon": "img/128.png"
+    },
+    "permissions": ["privacy", "<all_urls>"],
+    "background": {
+        "scripts": ["/js/background.js"],
+        "persistent": false
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["/js/content_script.js"],
+            "run_at": "document_start"
+        }
+    ]
+}
