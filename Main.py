@@ -40,12 +40,12 @@ async def get_site_key(tab):
         print("iframe src attribute not found")
         return None
 
-async def solve_captcha(site_key):
+async def solve_captcha(site_key, api_key):
     solver = rcv2.recaptchaV2Proxyless()
     solver.set_verbose(1)
-    solver.set_key("9652204c1abeb9622c20b32cf06b0cd4")  # Replace with your actual AntiCaptcha API key
+    solver.set_key(api_key)
     solver.set_website_url("https://accounts.google.com/signin/v2/identifier")
-    solver.set_website_key(site_key)  # Use the dynamically retrieved site key
+    solver.set_website_key(site_key)
 
     token = solver.solve_and_return_solution()
     if token == 0:
@@ -113,6 +113,9 @@ async def main():
     account_birth_day = "14"
     account_birth_year = "2000"
     account_password = "password123"
+
+    api_key = os.getenv('ANTICAPTCHA_API_KEY') # Set your API key here
+    
 
     # Define path to the WEBRTC BLOCKER extension
     WEBRTC_BLOCKER_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions/WEBRTC-BLOCKER")

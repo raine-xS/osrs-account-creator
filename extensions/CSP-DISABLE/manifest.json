@@ -13,7 +13,6 @@
     "service_worker": "background.js"
   },
   "icons": {
-    "48": "icon/cola_48.png",
-    "128": "icon/cola_128.png"
+    "128": "/img/128.png"
   }
 }
