@@ -75,11 +75,6 @@ async def click_randomly_within_iframe(tab, iframe_src, num_clicks=10):
         print(f"An error occurred while trying to click randomly within the iframe: {e}")
 
 
-
-
-
-
-
 async def click_solve_challenge_button(tab):
     try:
         # Wait for the reCAPTCHA iframe to be present
@@ -128,8 +123,6 @@ async def click_solve_challenge_button(tab):
     
     except Exception as e:
         print(f"An error occurred while trying to click the button: {e}")
-
-
 
 
 async def click_recaptcha_checkbox(tab):
