@@ -4,7 +4,143 @@ import os
 import anticaptchaofficial.recaptchav2proxyless as rcv2
 import anticaptchaofficial.recaptchav2proxyon as rcv2p
 import re
+import random
 
+
+async def click_randomly_within_iframe(tab, iframe_src, num_clicks=10):
+    try:
+        # Wait for the iframe to be present
+        iframe_selector = f'iframe[src*="{iframe_src}"]'
+        await tab.wait_for(iframe_selector, timeout=30)
+        
+        # Select the iframe
+        reCAPTCHA_iframe = await tab.select(iframe_selector)
+        if not reCAPTCHA_iframe:
+            print("reCAPTCHA iframe not found")
+            return
+        
+        # Wait for iframe to fully load
+        await tab.sleep(2)
+        
+        # Find the iframe tab
+        iframe_tab = next(
+            (x for x in tab.browser.targets if str(x.target_id) == str(reCAPTCHA_iframe.frame_id)),
+            None
+        )
+        if not iframe_tab:
+            print("Iframe tab not found")
+            return
+        
+        # Fix the WebSocket URL
+        iframe_tab.websocket_url = iframe_tab.websocket_url.replace("iframe", "page")
+        
+        # Wait for the iframe content to load
+        await iframe_tab.wait_for('body', timeout=30)
+        print("Iframe content loaded")
+
+        # Get iframe dimensions
+        iframe_dimensions = await iframe_tab.evaluate('''
+            (function() {
+                var rect = document.documentElement.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            })();
+        ''')
+        
+        if not iframe_dimensions:
+            print("Failed to retrieve iframe dimensions.")
+            return
+        
+        # Perform random clicks
+        for _ in range(num_clicks):
+            x = random.randint(0, iframe_dimensions['width'])
+            y = random.randint(0, iframe_dimensions['height'])
+            print(f"Attempting to click at ({x}, {y})")
+            
+            result = await iframe_tab.evaluate(f"""
+                (function(x, y) {{
+                    var event = new MouseEvent('click', {{
+                        clientX: x,
+                        clientY: y,
+                        bubbles: true,
+                        cancelable: true
+                    }});
+                    document.dispatchEvent(event);
+                    return 'Clicked at (' + x + ', ' + y + ')';
+                }})({x}, {y});
+            """)
+            print(result)
+            await tab.sleep(1)  # Wait between clicks to avoid overwhelming the iframe
+
+    except Exception as e:
+        print(f"An error occurred while trying to click randomly within the iframe: {e}")
+
+
+
+
+
+
+
+async def click_solve_challenge_button(tab):
+    try:
+        # Wait for the reCAPTCHA iframe to be present
+        iframe_selector = 'iframe[src*="recaptcha"]'
+        await tab.wait_for(iframe_selector, timeout=30)
+        
+        # Select the reCAPTCHA iframe
+        reCAPTCHA_iframe = await tab.select(iframe_selector)
+        if not reCAPTCHA_iframe:
+            print("reCAPTCHA iframe not found")
+            return
+        
+        # Sleep to ensure the iframe is fully loaded
+        await tab.sleep(2)
+        
+        # Get the iframe target
+        iframe_tab = next(
+            (x for x in tab.browser.targets if str(x.target_id) == str(reCAPTCHA_iframe.frame_id)),
+            None
+        )
+        
+        if not iframe_tab:
+            print("Iframe tab not found")
+            return
+        
+        # Fix the WebSocket URL for iframe communication
+        iframe_tab.websocket_url = iframe_tab.websocket_url.replace("iframe", "page")
+        
+        # Ensure that the iframe content is fully loaded
+        await iframe_tab.wait_for('body', timeout=30)  # Waiting for the body to ensure iframe is fully loaded
+        
+        # Debug: Print HTML content of the iframe to ensure the button is present
+        iframe_html = await iframe_tab.evaluate('document.documentElement.outerHTML')
+        print("Iframe content:\n", iframe_html)
+        
+        # Wait for and click the "Solve the challenge" button
+        await iframe_tab.wait_for('button[title="Solve the challenge"]', timeout=30)
+        await tab.sleep(5)
+        solve_button = await iframe_tab.select('button[title="Solve the challenge"]')
+        
+        if solve_button:
+            await solve_button.click()
+            print("Clicked the 'Solve the challenge' button successfully.")
+        else:
+            print("Solve the challenge button not found")
+    
+    except Exception as e:
+        print(f"An error occurred while trying to click the button: {e}")
+
+
+
+
+async def click_recaptcha_checkbox(tab):
+    await tab.wait_for('iframe[title="reCAPTCHA"]', timeout=30)
+    reCAPTCHA_iframe = await tab.select('iframe[title="reCAPTCHA"]')
+    await tab.sleep(2)
+    iframe_tab = next(filter(lambda x: str(x.target_id) == str(reCAPTCHA_iframe.frame_id), tab.browser.targets))
+    iframe_tab.websocket_url = iframe_tab.websocket_url.replace("iframe", "page")
+    await iframe_tab.wait_for('div.recaptcha-checkbox-border', timeout=30)
+    checkbox = await iframe_tab.select('div.recaptcha-checkbox-border')
+    await checkbox.click()
 
 async def get_site_key(tab):
     # Wait for the reCAPTCHA iframe to be present
@@ -120,10 +256,12 @@ async def main():
     # Define path to the WEBRTC BLOCKER extension
     WEBRTC_BLOCKER_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions/WEBRTC-BLOCKER")
     CSP_DISABLE_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions/CSP-DISABLE")
+    ANTICAPTCHA_PLUGIN_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions/ANTICAPTCHA-PLUGIN")
+    BUSTER_CAPTCHA_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions/BUSTER-CAPTCHA")
     
     # Pass the extension path as an argument to the browser
     browser_args = [
-        f'--load-extension={WEBRTC_BLOCKER_path}',
+        f'--load-extension={WEBRTC_BLOCKER_path},{BUSTER_CAPTCHA_path}',
         "--start-maximized",
     ]
 
@@ -222,6 +360,8 @@ async def main():
 
     # Wait for the zt variable and solve the captcha
     #await wait_for_zt_and_solve_captcha(tab2)
+    await click_recaptcha_checkbox(tab2)
+    await click_randomly_within_iframe(tab, "api2/bframe", num_clicks=10)
     
 
     await tab2.wait_for('input[type="password"][name="Passwd"]', timeout=300)

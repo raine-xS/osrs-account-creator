@@ -1,6 +1,6 @@
 // Public config
 
-var antiCapthaPredefinedApiKey = '9652204c1abeb9622c20b32cf06b0cd4';
+var antiCapthaPredefinedApiKey = '9652204c1abeb9622c20b32cf06b0cd4'; // CHANGE
 
 var defaultConfig = {
     // settings
