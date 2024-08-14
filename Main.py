@@ -6,7 +6,7 @@ import anticaptchaofficial.recaptchav2proxyon as rcv2p
 import re
 import random
 
-// todo: bypass Google Captcha
+## todo: bypass Google Captcha
 
 async def click_recaptcha_checkbox(tab):
     await tab.wait_for('iframe[title="reCAPTCHA"]', timeout=30)
