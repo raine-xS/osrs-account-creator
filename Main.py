@@ -11,7 +11,7 @@ import http.client
 import json
 import traceback
 
-async def do_google_phone_verification_with_smspva(tab, buget_per_order=2.5, api_key="AAA"):
+async def do_google_phone_verification_with_smspva(tab, buget_per_order=2.5, api_key="pwVbSdhTubxeLbhyak74qSlWphlK3I"):
     try:
         country = "NL"
         service_code = "opt1"  # Opt1 for Google (YT/Gmail) Service / opt19 other
@@ -362,17 +362,23 @@ async def get_email_prefix(email: str) -> str:
     return email.split('@')[0]
     
 async def main():
-    first_name = await generate_name('first-names.txt')
-    last_name = await generate_name('last-names.txt')
-    email = await generate_random_gmail('words.txt')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    first_name_file = os.path.join(current_dir, 'first-names.txt')
+    last_name_file = os.path.join(current_dir, 'last-names.txt')
+    words_file = os.path.join(current_dir, 'words.txt')
+
+    first_name = await generate_name(first_name_file)
+    last_name = await generate_name(last_name_file)
+    email = await generate_random_gmail(words_file)
     email_prefix = await get_email_prefix(email)
-    email_password = await generate_random_password('words.txt')
+    email_password = await generate_random_password(words_file)
     birthdate = await generate_random_date()
     account_birth_month = str(birthdate[0])
     account_birth_day = str(birthdate[1])
     account_birth_year = str(birthdate[2])
     account_password = email_password
-    account_name = await generate_random_account_name('words.txt')
+    account_name = await generate_random_account_name(words_file)
     external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
 
     print(f"\n\nCreating a new account...")
