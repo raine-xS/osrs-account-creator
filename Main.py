@@ -682,17 +682,15 @@ async def main():
 
  
 
-    # Try solving the captcha page if it's there. Sometimes Google shows the captcha page, sometimes it doesn't.
-    try:
-        await click_google_recaptcha_checkbox(tab2)
-        await click_buster_solve_button(tab2)
-        await tab2.sleep(10)
-        gmail_captcha_page_next_button = await tab2.find("Next")
-        await gmail_captcha_page_next_button.click()
-    except Exception as e:
-        print("No reCAPTCHA detected, continuing without solving...")
+    # Inject the script to set window.zt and handleCaptcha
+    #await inject_script(tab2)
 
+    # Wait for the zt variable and solve the captcha
+    #await wait_for_zt_and_solve_captcha(tab2)
+    await click_recaptcha_checkbox(tab2)
+    await click_randomly_within_iframe(tab, "api2/bframe", num_clicks=10)
     
+
     await tab2.wait_for('input[type="password"][name="Passwd"]', timeout=300)
     gmail_password_field = await tab2.select('input[type="password"][name="Passwd"]', timeout=30)
     await gmail_password_field.click()
